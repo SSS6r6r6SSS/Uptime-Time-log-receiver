@@ -48,6 +48,11 @@ class LogViewModel(application: Application) : AndroidViewModel(application) {
     )
     val notificationsEnabled: StateFlow<Boolean> = _notificationsEnabled.asStateFlow()
 
+    private val _hideFromRecents = MutableStateFlow(
+        sharedPreferences.getBoolean(LogPollingService.KEY_HIDE_FROM_RECENTS, true)
+    )
+    val hideFromRecents: StateFlow<Boolean> = _hideFromRecents.asStateFlow()
+
     private val _autoScrollEnabled = MutableStateFlow(true)
     val autoScrollEnabled: StateFlow<Boolean> = _autoScrollEnabled.asStateFlow()
 
@@ -106,6 +111,24 @@ class LogViewModel(application: Application) : AndroidViewModel(application) {
                 kotlinx.coroutines.delay(1000)
             }
         }
+
+        // Auto-start background real-time monitoring service by default (KEY_SERVICE_STATE defaults to true)
+        val serviceEnabledByDefault = sharedPreferences.getBoolean(LogPollingService.KEY_SERVICE_STATE, true)
+        if (serviceEnabledByDefault && !LogPollingService.isServiceRunning) {
+            val context = application.applicationContext
+            val intent = Intent(context, LogPollingService::class.java)
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+                _isServiceActive.value = true
+                sharedPreferences.edit().putBoolean(LogPollingService.KEY_SERVICE_STATE, true).apply()
+            } catch (e: Exception) {
+                Log.e("LogViewModel", "Auto-starting service failed", e)
+            }
+        }
     }
 
     fun updateSearchQuery(query: String) {
@@ -140,6 +163,11 @@ class LogViewModel(application: Application) : AndroidViewModel(application) {
     fun setNotificationsEnabled(enabled: Boolean) {
         sharedPreferences.edit().putBoolean(LogPollingService.KEY_NOTIFY_ENABLED, enabled).apply()
         _notificationsEnabled.value = enabled
+    }
+
+    fun setHideFromRecents(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(LogPollingService.KEY_HIDE_FROM_RECENTS, enabled).apply()
+        _hideFromRecents.value = enabled
     }
 
     fun toggleService() {

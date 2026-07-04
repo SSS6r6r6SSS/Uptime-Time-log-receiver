@@ -1,6 +1,7 @@
 package com.example
 
 import android.Manifest
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -172,6 +173,21 @@ fun LogMonitorScreen(
     val lastUpdated by viewModel.lastUpdated.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val logUrl by viewModel.logUrl.collectAsState()
+    val hideFromRecents by viewModel.hideFromRecents.collectAsState()
+
+    // Dynamically exclude the app from recent tasks list when enabled
+    LaunchedEffect(hideFromRecents) {
+        try {
+            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                am.appTasks.forEach { task ->
+                    task.setExcludeFromRecents(hideFromRecents)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error setting excludeFromRecents to $hideFromRecents", e)
+        }
+    }
 
     var selectedTab by remember { mutableStateOf(0) } // 0: Logs, 1: History & Stats, 2: Config
 
@@ -1060,6 +1076,39 @@ fun LogMonitorScreen(
                                         uncheckedTrackColor = ElegantButtonGray
                                     ),
                                     modifier = Modifier.scale(0.85f)
+                                )
+                            }
+
+                            // Hide from recent tasks switch
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "在最近任务列表中隐藏",
+                                        color = ElegantTextLight,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "开启后，本应用将不会显示在系统的最近任务列表中，更安全隐私",
+                                        color = ElegantTextGray,
+                                        fontSize = 10.sp,
+                                        lineHeight = 13.sp
+                                    )
+                                }
+                                Switch(
+                                    checked = hideFromRecents,
+                                    onCheckedChange = { viewModel.setHideFromRecents(it) },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = ElegantOnPrimary,
+                                        checkedTrackColor = ElegantPrimary,
+                                        uncheckedThumbColor = ElegantTextGray,
+                                        uncheckedTrackColor = ElegantButtonGray
+                                    ),
+                                    modifier = Modifier.scale(0.85f).testTag("hide_from_recents_toggle")
                                 )
                             }
                         }

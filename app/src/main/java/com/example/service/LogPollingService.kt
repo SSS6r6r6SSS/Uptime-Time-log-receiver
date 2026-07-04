@@ -44,6 +44,7 @@ class LogPollingService : Service() {
         const val KEY_INTERVAL = "polling_interval_ms"
         const val KEY_NOTIFY_ENABLED = "notifications_enabled"
         const val KEY_SERVICE_STATE = "service_state_enabled"
+        const val KEY_HIDE_FROM_RECENTS = "hide_from_recents"
         const val KEY_LOG_URL = "log_url"
         
         const val DEFAULT_INTERVAL = 10000L // 10 seconds
