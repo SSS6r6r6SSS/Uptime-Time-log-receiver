@@ -32,7 +32,7 @@ To set up the application, navigate to the **Config** tab, where the following o
 ## Setup Guide
 1. Download and install Uptime Logpush on your mobile device.
 2. Open the app and navigate to the **Config** tab.
-3. Input your Uptime Kuma webhook URL or log file address into the **Data Source URL** field.
+3. Input your Uptime Kuma log file address into the **Data Source URL** field.
 4. Set your preferred **Polling Interval** (e.g., 300 seconds).
 5. Ensure **Background Monitoring** is enabled to keep the service alive.
 6. You should now see server statuses appearing in the **Logs** tab.
